@@ -68,7 +68,7 @@ HTTP 9 経路: `/`、`/posts/日本語/`、`/pages/about/`、`/category/tech/`�
 
 自己レビュー: Issue の目的とローカル境界、公開/下書き、実データ不在の明示、秘密情報/バックアップの Git 除外、復元の上書き防止、固定バージョンと手順の一致を確認。同じタスク内の独立したレビューエージェントが元コミットと修正差分を確認。3 件の P2 指摘 (WXR 構造、集計辞書の特殊キー、snapshot の特殊ファイル名欠落) を修正し、再レビューで新しい must-fix 指摘なし。修正後に `mise run validate` を再実行して成功した。
 
-GitHub 書き込み (Issue コメント/Project 更新/push/PR) は **skipped**。公開が承認された場合の対象は `yutaro1985/personal-blog` の `codex/issue-1-local-migration-poc` → `main`、draft PR。Issue #1 全体を close する内容ではない。
+ローカル検証完了後、2026-10-09 に利用者から Issue コメントと draft PR 作成の許可を受領。公開対象は `yutaro1985/personal-blog` の `codex/issue-1-local-migration-poc` → `main`。Issue #1 全体を close する内容ではない。Project 更新、本番公開、DNS 切替、課金リソース作成は対象外。
 
 ## 独立レビュー後の追記
 
