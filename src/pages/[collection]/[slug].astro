@@ -1,0 +1,106 @@
+---
+import {
+  getEmDashEntry,
+  getSeoMeta,
+  decodeSlug,
+  getEmDashCollection,
+  getTaxonomyTerms,
+} from "emdash";
+import { Image, PortableText } from "emdash/ui";
+import Base from "../../layouts/Base.astro";
+const collection = Astro.params.collection;
+const slug = decodeSlug(Astro.params.slug);
+const isContent = collection === "posts" || collection === "pages";
+const isTaxonomy = collection === "category" || collection === "tag";
+let entry = null;
+let term = null;
+let posts: Awaited<ReturnType<typeof getEmDashCollection<"posts">>>["entries"] =
+  [];
+let nextCursor;
+if (slug && isContent) {
+  const result = await getEmDashEntry(collection, slug);
+  if (result.error) throw result.error;
+  entry = result.entry;
+}
+if (slug && isTaxonomy) {
+  term = (await getTaxonomyTerms(collection, { includeCounts: false })).find(
+    (t) => t.slug === slug,
+  );
+  if (term) {
+    const result = await getEmDashCollection("posts", {
+      status: "published",
+      where: { [collection]: slug },
+      limit: 10,
+      cursor: Astro.url.searchParams.get("cursor") ?? undefined,
+      orderBy: { published_at: "desc" },
+    });
+    if (result.error) throw result.error;
+    posts = result.entries;
+    nextCursor = result.nextCursor;
+  }
+}
+if (!entry && !term) Astro.response.status = 404;
+const seo = entry
+  ? getSeoMeta(entry, {
+      siteTitle: "移行検証ブログ",
+      siteUrl: Astro.url.origin,
+      path: Astro.url.pathname.replace(/\/$/, ""),
+    })
+  : null;
+---
+
+<Base
+  title={seo?.title ?? term?.label ?? "ページが見つかりません"}
+  description={seo?.description}
+  canonical={seo?.canonical}
+  image={seo?.ogImage}
+  content={entry
+    ? { collection: collection!, id: entry.data.id, slug }
+    : undefined}
+>
+  {
+    entry ? (
+      <article>
+        <h1 {...entry.edit.title}>{entry.data.title}</h1>
+        {entry.data.publishedAt && (
+          <time datetime={entry.data.publishedAt.toISOString()}>
+            {entry.data.publishedAt.toLocaleDateString("ja-JP", {
+              timeZone: "Asia/Tokyo",
+            })}
+          </time>
+        )}
+        {"featured_image" in entry.data && entry.data.featured_image && (
+          <Image image={entry.data.featured_image} />
+        )}
+        <PortableText value={entry.data.content} />
+        {entry.data.terms?.category?.map((t) => (
+          <a href={`/category/${encodeURIComponent(t.slug)}/`}>{t.label}</a>
+        ))}
+        {entry.data.terms?.tag?.map((t) => (
+          <a href={`/tag/${encodeURIComponent(t.slug)}/`}>{t.label}</a>
+        ))}
+      </article>
+    ) : term ? (
+      <section>
+        <h1>{term.label}</h1>
+        <ul class="posts">
+          {posts.map((post) => (
+            <li>
+              <a href={`/posts/${encodeURIComponent(post.id)}/`}>
+                {post.data.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+        {nextCursor && (
+          <a href={`?cursor=${encodeURIComponent(nextCursor)}`}>次の記事</a>
+        )}
+      </section>
+    ) : (
+      <section>
+        <h1>ページが見つかりません</h1>
+        <a href="/">記事一覧へ</a>
+      </section>
+    )
+  }
+</Base>
