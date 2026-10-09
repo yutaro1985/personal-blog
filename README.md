@@ -4,6 +4,7 @@
 
 - [実装計画](docs/plans/2026-10-09-issue-1.md)
 - [検証結果と制約](docs/validation.md)
+- [受入条件と最小必要入力](docs/acceptance-status.md)
 - [棚卸し・受入・本番移行 runbook](docs/migration-runbook.md)
 
 ## 起動

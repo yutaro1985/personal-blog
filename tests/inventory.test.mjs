@@ -60,3 +60,33 @@ test("supports namespace aliases used by XML exporters", () => {
     6,
   );
 });
+test("rejects malformed WXR structure instead of silently losing items or status", () => {
+  for (const xml of [
+    fixture.replace(
+      "<wp:status>draft</wp:status>",
+      "<wp:status>draft</wp:status><wp:status>publish</wp:status>",
+    ),
+    fixture.replace(
+      "<wp:post_id>2</wp:post_id>",
+      "<item><title>nested</title></item><wp:post_id>2</wp:post_id>",
+    ),
+    '<rss xmlns:wp="http://wordpress.org/export/1.2/"><wp:wxr_version>1.2</wp:wxr_version></rss>',
+  ])
+    assert.throws(() => inventory(xml), /WXR|Duplicate|Nested/);
+});
+test("counts unexpected prototype-like values without losing records", () => {
+  const report = inventory(
+    fixture
+      .replace(
+        "<wp:status>draft</wp:status>",
+        "<wp:status>__proto__</wp:status>",
+      )
+      .replace(
+        "<wp:post_type>page</wp:post_type>",
+        "<wp:post_type>constructor</wp:post_type>",
+      ),
+  );
+  assert.equal(report.byStatus.__proto__, 1);
+  assert.equal(report.byType.constructor, 1);
+  assert.ok(report.issues.some((issue) => issue.code === "unknown-status"));
+});

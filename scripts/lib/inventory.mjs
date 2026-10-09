@@ -23,6 +23,7 @@ export function inventory(xml) {
   const stack = [];
   const items = [];
   let current, wxrVersion, root;
+  let channels = 0;
   parser.ondoctype = () => {
     throw new Error("DTD is not supported");
   };
@@ -30,18 +31,38 @@ export function inventory(xml) {
     const key = node.uri ? `${node.uri}|${node.local}` : node.local;
     if (!root) root = key;
     stack.push({ key, text: "", attributes: node.attributes });
-    if (key === "item" && stack.length === 3 && stack[1].key === "channel")
+    if (key === "channel") {
+      if (stack.length !== 2 || stack[0].key !== "rss" || ++channels !== 1)
+        throw new Error("Invalid WXR channel structure");
+    }
+    if (key === "item") {
+      if (current || stack.length !== 3 || stack[1].key !== "channel")
+        throw new Error("Nested or misplaced WXR item");
       current = { categories: [], media: [], flags: [] };
+    }
   };
   parser.ontext = parser.oncdata = (text) => {
     if (stack.length) stack.at(-1).text += text;
   };
   parser.onclosetag = () => {
     const node = stack.pop();
-    if (node.key === `${WP}|wxr_version`) wxrVersion = node.text.trim();
+    if (node.key === `${WP}|wxr_version`) {
+      if (
+        stack.length !== 2 ||
+        stack[1].key !== "channel" ||
+        wxrVersion !== undefined
+      )
+        throw new Error("Invalid WXR version declaration");
+      wxrVersion = node.text.trim();
+    }
     if (!current) return;
     if (stack.at(-1)?.key === "item") {
-      if (fields[node.key]) current[fields[node.key]] = node.text.trim();
+      if (Object.hasOwn(fields, node.key)) {
+        const field = fields[node.key];
+        if (Object.hasOwn(current, field))
+          throw new Error("Duplicate WXR field");
+        current[field] = node.text.trim();
+      }
       if (node.key === "category")
         current.categories.push({
           taxonomy: node.attributes.domain?.value ?? "",
@@ -81,17 +102,18 @@ export function inventory(xml) {
     }
   };
   parser.write(xml).close();
-  if (root !== "rss" || wxrVersion !== "1.2")
+  if (root !== "rss" || channels !== 1 || wxrVersion !== "1.2")
     throw new Error("Expected WordPress WXR 1.2");
-  const byStatus = {},
-    byType = {},
+  const byStatus = new Map(),
+    byType = new Map(),
     issues = [],
     seen = new Set(),
     urls = new Set();
   for (const item of items) {
-    byStatus[item.status || "unknown"] =
-      (byStatus[item.status || "unknown"] ?? 0) + 1;
-    byType[item.type || "unknown"] = (byType[item.type || "unknown"] ?? 0) + 1;
+    const status = item.status || "unknown",
+      type = item.type || "unknown";
+    byStatus.set(status, (byStatus.get(status) ?? 0) + 1);
+    byType.set(type, (byType.get(type) ?? 0) + 1);
     for (const field of ["id", "type", "status", "url"])
       if (!item[field])
         issues.push({ code: `missing-${field}`, id: item.id ?? null });
@@ -120,8 +142,8 @@ export function inventory(xml) {
     version: 1,
     sourceSha256: createHash("sha256").update(xml).digest("hex"),
     total: items.length,
-    byStatus,
-    byType,
+    byStatus: Object.fromEntries(byStatus),
+    byType: Object.fromEntries(byType),
     issues,
     items,
     limitations: [

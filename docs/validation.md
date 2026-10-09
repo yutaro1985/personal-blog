@@ -16,7 +16,7 @@
 | 検証                                                             | 結果                                                                                    |
 | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `mise run validate`                                              | 成功。format check / 全 unit tests / Astro 型検査 / build を順次実行                    |
-| `npm test`                                                       | 15 件合格、失敗 0。WXR 状態/URL/DTD/XML/重複、非公開出力、境界、snapshot、upstream 変換 |
+| `npm test`                                                       | 18 件合格、失敗 0。WXR 状態/URL/DTD/XML/重複、非公開出力、境界、snapshot、upstream 変換 |
 | `npm run check`                                                  | 24 ファイル、error 0 / warning 0 / hint 0                                               |
 | `npm run build`                                                  | 成功。500 kB 超 chunk の Vite warning は残る                                            |
 | `npm audit --json`                                               | 確認時点の既知脆弱性 0 件。非推奨の upstream 依存は残る                                 |
@@ -63,9 +63,17 @@ HTTP 9 経路: `/`、`/posts/日本語/`、`/pages/about/`、`/category/tech/`�
 - `src/pages/`, `src/layouts/Base.astro`, `src/live.config.ts`: SSR/SEO/RSS/管理連携。
 - `seed/seed.json`, `emdash-env.d.ts`, `.emdash/migrations.json`: 合成モデル・記事と生成メタデータ。
 - `scripts/`: WXR 棚卸し、合成 seed、snapshot/restore、HTTP 検査。
-- `tests/`: 15 テスト、合成 WXR/SVG。
+- `tests/`: 18 テスト、合成 WXR/SVG。
 - `AGENTS.md`, `README.md`, `docs/`, `.gitignore`, `.prettier*`: 作業境界、手順、計画、結果、整形。
 
-自己レビュー: Issue の目的とローカル境界、公開/下書き、実データ不在の明示、秘密情報/バックアップの Git 除外、復元の上書き防止、固定バージョンと手順の一致を確認。独立したレビューエージェントによるレビューは未実施。
+自己レビュー: Issue の目的とローカル境界、公開/下書き、実データ不在の明示、秘密情報/バックアップの Git 除外、復元の上書き防止、固定バージョンと手順の一致を確認。同じタスク内の独立したレビューエージェントが元コミットと修正差分を確認。3 件の P2 指摘 (WXR 構造、集計辞書の特殊キー、snapshot の特殊ファイル名欠落) を修正し、再レビューで新しい must-fix 指摘なし。修正後に `mise run validate` を再実行して成功した。
 
 GitHub 書き込み (Issue コメント/Project 更新/push/PR) は **skipped**。公開が承認された場合の対象は `yutaro1985/personal-blog` の `codex/issue-1-local-migration-poc` → `main`、draft PR。Issue #1 全体を close する内容ではない。
+
+## 独立レビュー後の追記
+
+不正な WXR の channel/version/item 構造と重複状態フィールドを拒否し、投稿タイプ/状態の集計に Map を使用した。snapshot のハッシュ辞書を null-prototype に変更し、`__proto__` という名前のファイルも復元する。3 つの回帰テストは修正前に失敗し、修正後に成功。認証 bypass に関する一時的な疑いは、Astro が middleware より前に URL を正規化する実装を確認して撤回され、認証経路の変更はしていない。
+
+画像の path traversal/backup-prefix 対策は pinned upstream の実装を静的確認。秘密情報については追跡対象ファイルの典型的パターン検査を実施したが、完全検出の保証ではない。新しい認証情報の作成、実データの取得、公開は行っていない。
+
+[受入条件の照合と最小必要入力](acceptance-status.md) を追加。実 WXR と画像原本を受領する前に、これ以上の実データ移行の合格判定は進められない。

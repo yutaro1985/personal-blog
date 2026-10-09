@@ -44,3 +44,13 @@ test("rejects symlinks instead of copying outside the snapshot", async () => {
   await symlink("/etc/hosts", join(source, "outside"));
   await assert.rejects(snapshot(source, join(dir, "backup")), /symlink/);
 });
+test("preserves filenames that match Object prototype names", async () => {
+  const { dir, source } = await fixture();
+  await writeFile(join(source, "__proto__"), "media bytes");
+  await snapshot(source, join(dir, "backup"));
+  await restore(join(dir, "backup"), join(dir, "restored"));
+  assert.equal(
+    await readFile(join(dir, "restored", "__proto__"), "utf8"),
+    "media bytes",
+  );
+});

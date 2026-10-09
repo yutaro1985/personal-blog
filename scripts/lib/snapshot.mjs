@@ -10,7 +10,7 @@ import { join, relative, resolve, dirname } from "node:path";
 import { createHash } from "node:crypto";
 
 async function hashes(root) {
-  const result = {};
+  const result = Object.create(null);
   async function visit(path) {
     const stat = await lstat(path);
     if (stat.isSymbolicLink()) throw new Error("Snapshot refuses symlinks");
