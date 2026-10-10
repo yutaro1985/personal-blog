@@ -1,6 +1,6 @@
 # personal-blog の作業境界
 
-Issue #1 と `docs/plans/2026-10-09-issue-1.md` を起点にする。現在はローカル PoC。EmDash の採用や本番移行の承認は別。
+Issue #1 と `docs/plans/2026-10-09-issue-1.md` を起点にする。EmDash を使う方針で、現在の実装は Draft PR #2 のローカル PoC。実データの受入と本番移行の承認は別。
 
 - `mise.toml` / exact npm dependencies / lockfile を使う。
 - 検証用データだけを `seed/` と `tests/fixtures/` に保存する。実 WXR、SQL、DB、バックアップ、非公開 URL 対応表、トークンはコミットしない。

@@ -1,11 +1,15 @@
 # personal-blog
 
-[Issue #1](https://github.com/yutaro1985/personal-blog/issues/1) の WordPress → EmDash 移行を検証するローカル PoC。**本番移行済みではありません。** 記事・画像・URL の実データ、編集者の操作、Cloudflare 上の復旧は後続の受入対象です。
+[Issue #1](https://github.com/yutaro1985/personal-blog/issues/1) の WordPress → EmDash 移行を検証するローカル PoC。  
+2026-10-11 時点の方針は EmDash と Astro を使う移行で、実装は [Draft PR #2](https://github.com/yutaro1985/personal-blog/pull/2) に公開しています。  
+**本番移行済みではありません。**  
+記事・画像・URL の実データ、編集者の操作、Cloudflare 上の復旧は後続の受入対象です。
 
 - [実装計画](docs/plans/2026-10-09-issue-1.md)
 - [検証結果と制約](docs/validation.md)
 - [受入条件と最小必要入力](docs/acceptance-status.md)
 - [棚卸し・受入・本番移行 runbook](docs/migration-runbook.md)
+- [スクリプトの責務と操作範囲](docs/script-responsibilities.md)
 
 ## 起動
 
@@ -70,6 +74,12 @@ mise exec -- npm run inventory -- tests/fixtures/representative.xml
 
 ## ローカル復旧
 
-[runbook](docs/migration-runbook.md) の停止・保全手順に従います。snapshot は `.wrangler/state` 全体を別ディレクトリにコピーし、SHA-256 を照合します。復元は `.private/restored-state` へ行い、使用中の状態は上書きしません。これはローカルエミュレーター用で、本番 D1/R2 のバックアップ実装ではありません。
+[runbook](docs/migration-runbook.md) の停止・保全手順に従います。  
+backup は未コミット変更のない Git checkout を要求し、アプリの Git commit、lockfile ハッシュ、Node バージョンを記録します。  
+snapshot は `.wrangler/state` 全体を別ディレクトリにコピーし、SHA-256 を照合します。  
+復元は `.private/restored-state` へ行い、使用中の状態は上書きしません。  
+これはローカルエミュレーター用で、本番 D1/R2 のバックアップ実装ではありません。
 
-`dist/`、`.wrangler/`、`.private/`、実 WXR・SQL・DB・秘密情報はコミットしません。本番公開・DNS・課金資源・認証作成・push/PR は今回の作業範囲に含みません。
+`dist/`、`.wrangler/`、`.private/`、実 WXR・SQL・DB・秘密情報はコミットしません。  
+PR #2 の更新は許可済みで、Draft を維持します。  
+本番公開・DNS・課金資源・認証作成・WordPress の変更や削除、PR の Ready 化と merge には別途の指示が必要です。
