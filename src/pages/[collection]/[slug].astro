@@ -4,7 +4,7 @@ import {
   getSeoMeta,
   decodeSlug,
   getEmDashCollection,
-  getTaxonomyTerms,
+  getTerm,
 } from "emdash";
 import { Image, PortableText } from "emdash/ui";
 import Base from "../../layouts/Base.astro";
@@ -23,9 +23,7 @@ if (slug && isContent) {
   entry = result.entry;
 }
 if (slug && isTaxonomy) {
-  term = (await getTaxonomyTerms(collection, { includeCounts: false })).find(
-    (t) => t.slug === slug,
-  );
+  term = await getTerm(collection, slug, { includeCounts: false });
   if (term) {
     const result = await getEmDashCollection("posts", {
       status: "published",

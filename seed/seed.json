@@ -83,6 +83,11 @@
         {
           "slug": "tech",
           "label": "技術"
+        },
+        {
+          "slug": "cloud",
+          "label": "クラウド",
+          "parent": "tech"
         }
       ]
     },
@@ -102,6 +107,18 @@
   ],
   "content": {
     "posts": [
+      {
+        "id": "child-category",
+        "slug": "child-category",
+        "status": "published",
+        "data": {
+          "title": "子カテゴリーの検証記事",
+          "content": []
+        },
+        "taxonomies": {
+          "category": ["cloud"]
+        }
+      },
       {
         "id": "japanese",
         "slug": "日本語",
