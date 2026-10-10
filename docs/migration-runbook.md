@@ -46,9 +46,22 @@ mise exec -- node scripts/snapshot.mjs backup .private/backup-001 --server-stopp
 mise exec -- node scripts/snapshot.mjs restore .private/backup-001 --server-stopped
 ```
 
-backup 先は新規ディレクトリのみ。DB/R2/KV を含む emulator 状態、各ファイルの SHA-256、作成時刻、lockfile ハッシュ、Node バージョンを記録する。symlink を拒否し、ハッシュが違う復元は失敗する。これは破損検出であり署名付きバックアップではない。
+backup 前に、実行するアプリの変更をコミットし、その checkout で起動・停止して状態を確定する。  
+backup は Git HEAD がない場合と、追跡ファイルの変更・stage 済み変更・未追跡ファイルがある場合に、出力を作らず失敗する。  
+Git 除外対象の `.wrangler/` や `.private/` はこの判定に含まれない。  
+snapshot 中はコードも変更しない。
 
-復元は `.private/restored-state` にだけ行い、現用状態は変更しない。manifest の lock ハッシュに対応するアプリ checkout を選ぶ。停止を再確認し、既存状態を `.private/pre-restore-001` など未使用の名前へ移動してから、復元済み state を `.wrangler/state` に配置する。上書きコピーはしない。
+backup 先は新規ディレクトリのみ。  
+DB/R2/KV を含む emulator 状態、各ファイルの SHA-256、作成時刻、`metadata.gitCommit`、`metadata.lockSha256`、Node バージョンを記録する。  
+symlink を拒否し、ハッシュが違う復元は失敗する。  
+これは破損検出であり署名付きバックアップではない。
+
+復元は `.private/restored-state` にだけ行い、現用状態は変更しない。  
+restore コマンドはファイルの整合性を確認するだけで、アプリの互換性判定や Git checkout は行わない。  
+起動前に、manifest の `metadata.gitCommit` と一致する未コミット変更のない checkout を用意し、lockfile の SHA-256 と Node バージョンも照合する。  
+commit の記録がない古いバックアップは対応コードが未特定なので、lockfile だけで互換性を判断せず、利用者に復旧点の確認を戻す。  
+停止を再確認し、既存状態を `.private/pre-restore-001` など未使用の名前へ移動してから、復元済み state を `.wrangler/state` に配置する。  
+上書きコピーはしない。
 
 合成画像の往復試験:
 
@@ -65,7 +78,18 @@ cmp tests/fixtures/media-probe.svg .private/restored-fixture.svg
 
 本番/検証は DB、R2、秘密情報を分離する。標準認証と Access は同じ認証モードとして混ぜない。検証環境はアクセス制限と noindex を併用する。Cloudflare の必要プラン/使用量/画像処理/メールを見積もってから資源作成を承認する。
 
-EmDash 管理画面 JSON export は復旧用と扱わない。raw DB または D1 PITR、同時点 R2 原本、アプリ commit/lock、秘密情報の保管先と鍵履歴を一組にする。バックアップは公開メディアと分離し、同じ障害範囲外にも保全。空 DB/バケットで実際に復元し、RPO/RTO/保持期間/担当者を決定する。ローカル emulator コピーだけでは D1 PITR や R2 復元の合格にはならない。
+EmDash 管理画面 JSON export は復旧用と扱わない。  
+raw DB/SQL export または D1 の復旧点、同時点 R2 原本、アプリ commit/lock、秘密情報の保管先と鍵履歴を一組にする。  
+バックアップは公開メディアと分離し、同じ障害範囲外にも保全する。
+
+| 復旧方法          | 対象と検証                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| raw DB/SQL export | 空の検証 DB に取り込み、別バケットのメディアと合わせて起動・ログイン・編集を確認する                                     |
+| D1 Time Travel    | 対象 DB 自体を指定時点へ巻き戻す。別 DB へのコピーではないため、専用の検証 DB と復旧前の保全・戻し手順を用意して実証する |
+
+[D1 Time Travel の公式仕様](https://developers.cloudflare.com/d1/reference/time-travel/)に沿って、対象と操作の許可を確認してから実施する。  
+実測後に RPO/RTO/保持期間/担当者を決定する。  
+ローカル emulator コピーだけではクラウド D1/R2 復元の合格にはならない。
 
 ## 5. 全量リハーサル
 
