@@ -44,6 +44,30 @@ test("flags duplicates rather than merging or silently normalizing URLs", () => 
   );
   assert.ok(report.issues.some((x) => x.code === "duplicate-id"));
 });
+test("identifies password protection without retaining the password or changing status", () => {
+  for (const password of ["synthetic-password", " ", ""]) {
+    for (const position of ["before", "after"]) {
+      const field = `<wp:post_password>${password}</wp:post_password>`;
+      const xml =
+        position === "before"
+          ? fixture.replace("<content:encoded>", `${field}<content:encoded>`)
+          : fixture.replace("</content:encoded>", `</content:encoded>${field}`);
+      const report = inventory(xml);
+      assert.equal(report.items[0].passwordProtected, password.length > 0);
+      assert.equal(report.items[0].status, "publish");
+      assert.equal(report.byStatus.publish, 2);
+      assert.equal(
+        report.issues.some(
+          (issue) => issue.code === "password-protected" && issue.id === "1",
+        ),
+        password.length > 0,
+      );
+      assert.ok(report.items[0].flags.includes("html-script"));
+      assert.ok(!JSON.stringify(report).includes("synthetic-password"));
+    }
+  }
+  assert.equal(inventory(fixture).items[0].passwordProtected, false);
+});
 test("rejects invalid XML, DTDs and non-WXR input", () => {
   for (const xml of [
     "<rss>",
@@ -62,6 +86,14 @@ test("supports namespace aliases used by XML exporters", () => {
 });
 test("rejects malformed WXR structure instead of silently losing items or status", () => {
   for (const xml of [
+    fixture.replace(
+      "</content:encoded>",
+      "</content:encoded><content:encoded>benign replacement</content:encoded>",
+    ),
+    fixture.replace(
+      "</content:encoded>",
+      "</content:encoded><wp:post_password>synthetic-password</wp:post_password><wp:post_password/>",
+    ),
     fixture.replace(
       "<wp:status>draft</wp:status>",
       "<wp:status>draft</wp:status><wp:status>publish</wp:status>",

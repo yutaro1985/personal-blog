@@ -16,9 +16,11 @@ const cases = [
   ["/posts/missing/", 404, "見つかりません"],
   ["/rss.xml", 200, "<rss"],
   ["/robots.txt", 200, "Disallow: /"],
+  ["/_emdash/admin/", 302, ""],
+  ["/_emdash/api/collections", 401, ""],
 ];
 for (const [path, status, text] of cases) {
-  const response = await fetch(new URL(path, origin));
+  const response = await fetch(new URL(path, origin), { redirect: "manual" });
   const body = await response.text();
   assert.equal(response.status, status, path);
   assert.ok(body.includes(text), `${path}: missing expected content`);

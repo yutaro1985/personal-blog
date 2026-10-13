@@ -10,6 +10,7 @@ const fields = {
   [`${WP}|post_name`]: "slug",
   [`${WP}|post_type`]: "type",
   [`${WP}|status`]: "status",
+  [`${WP}|post_password`]: "passwordProtected",
   [`${WP}|post_date`]: "dateLocal",
   [`${WP}|post_date_gmt`]: "dateGmt",
   [`${WP}|attachment_url`]: "attachmentUrl",
@@ -61,7 +62,10 @@ export function inventory(xml) {
         const field = fields[node.key];
         if (Object.hasOwn(current, field))
           throw new Error("Duplicate WXR field");
-        current[field] = node.text.trim();
+        current[field] =
+          field === "passwordProtected"
+            ? node.text.length > 0
+            : node.text.trim();
       }
       if (node.key === "category")
         current.categories.push({
@@ -70,6 +74,8 @@ export function inventory(xml) {
           label: node.text,
         });
       if (node.key === `${CONTENT}|encoded`) {
+        if (Object.hasOwn(current, "contentSha256"))
+          throw new Error("Duplicate WXR field");
         const html = node.text;
         current.contentSha256 = createHash("sha256").update(html).digest("hex");
         current.contentBytes = Buffer.byteLength(html);
@@ -97,6 +103,7 @@ export function inventory(xml) {
       }
     }
     if (node.key === "item") {
+      current.passwordProtected ??= false;
       items.push(current);
       current = undefined;
     }
@@ -110,6 +117,8 @@ export function inventory(xml) {
     seen = new Set(),
     urls = new Set();
   for (const item of items) {
+    if (item.passwordProtected)
+      issues.push({ code: "password-protected", id: item.id ?? null });
     const status = item.status || "unknown",
       type = item.type || "unknown";
     byStatus.set(status, (byStatus.get(status) ?? 0) + 1);

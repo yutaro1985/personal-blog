@@ -31,7 +31,10 @@
 | セキュリティ          | HTML/JS/埋め込みの実行境界、CSP、役割権限、native plugin の追加なし                           |
 | 復旧                  | 空の検証 DB/バケットへ戻し、ログイン・編集・保存・画像・必要な暗号化設定を確認                |
 
-WXR の private/future/pending を単純に published に変換しない。元ローカル日時と GMT を保持し、サイトの timezone と照合してから変換する。slug のデコード回数、末尾 slash、重複、予約日時は別々に照合する。URL を推測して一括トップ転送しない。
+WXR の private/future/pending を単純に published に変換しない。  
+`publish` でもパスワード保護された記事は、通常公開の対象に含めず個別に確認する。  
+棚卸しは `passwordProtected` と要確認事項 `password-protected` を記録し、パスワード自体は report に保存しない。  
+元ローカル日時と GMT を保持し、サイトの timezone と照合してから変換する。slug のデコード回数、末尾 slash、重複、予約日時は別々に照合する。URL を推測して一括トップ転送しない。
 
 今回の `/posts/{slug}/` は検証経路。実 URL が確定してからルートと SEO/canonical/sitemap の表現を揃える。スラッシュ強制を Astro 全体に設定すると EmDash の POST API の経路まで変わるため、公開ルートだけを対象に検証する。
 
