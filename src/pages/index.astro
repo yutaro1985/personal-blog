@@ -1,0 +1,40 @@
+---
+import { getEmDashCollection } from "emdash";
+import Base from "../layouts/Base.astro";
+const { entries, nextCursor, error } = await getEmDashCollection("posts", {
+  status: "published",
+  limit: 10,
+  cursor: Astro.url.searchParams.get("cursor") ?? undefined,
+  orderBy: { published_at: "desc" },
+});
+if (error) throw error;
+---
+
+<Base
+  title="移行検証ブログ"
+  description="EmDash による WordPress 移行のローカル検証"
+>
+  <h1>記事一覧</h1>
+  {entries.length === 0 && <p>公開済みの記事はありません。</p>}
+  <ul class="posts">
+    {
+      entries.map((post) => (
+        <li>
+          <>
+            <h2>
+              <a href={`/posts/${encodeURIComponent(post.id)}/`}>
+                {post.data.title}
+              </a>
+            </h2>
+            <p>{post.data.excerpt}</p>
+          </>
+        </li>
+      ))
+    }
+  </ul>
+  {
+    nextCursor && (
+      <a href={`/?cursor=${encodeURIComponent(nextCursor)}`}>次の記事</a>
+    )
+  }
+</Base>

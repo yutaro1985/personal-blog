@@ -1,0 +1,217 @@
+{
+  "$schema": "https://emdashcms.com/seed.schema.json",
+  "version": "1",
+  "meta": {
+    "name": "Local migration PoC",
+    "description": "Synthetic fixtures only. Not migrated WordPress content."
+  },
+  "settings": {
+    "title": "移行検証ブログ",
+    "tagline": "合成データによるローカル検証"
+  },
+  "collections": [
+    {
+      "slug": "posts",
+      "label": "Posts",
+      "labelSingular": "Post",
+      "urlPattern": "/posts/{slug}/",
+      "supports": [
+        "drafts",
+        "revisions",
+        "preview",
+        "scheduling",
+        "search",
+        "seo"
+      ],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "searchable": true
+        },
+        {
+          "slug": "featured_image",
+          "label": "Featured Image",
+          "type": "image"
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText",
+          "searchable": true
+        },
+        {
+          "slug": "excerpt",
+          "label": "Excerpt",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "slug": "pages",
+      "label": "Pages",
+      "labelSingular": "Page",
+      "urlPattern": "/pages/{slug}/",
+      "supports": ["drafts", "revisions", "preview", "search", "seo"],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "searchable": true
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText",
+          "searchable": true
+        }
+      ]
+    }
+  ],
+  "taxonomies": [
+    {
+      "name": "category",
+      "label": "Categories",
+      "labelSingular": "Category",
+      "hierarchical": true,
+      "collections": ["posts"],
+      "terms": [
+        {
+          "slug": "tech",
+          "label": "技術"
+        },
+        {
+          "slug": "cloud",
+          "label": "クラウド",
+          "parent": "tech"
+        }
+      ]
+    },
+    {
+      "name": "tag",
+      "label": "Tags",
+      "labelSingular": "Tag",
+      "hierarchical": false,
+      "collections": ["posts"],
+      "terms": [
+        {
+          "slug": "example",
+          "label": "検証"
+        }
+      ]
+    }
+  ],
+  "content": {
+    "posts": [
+      {
+        "id": "child-category",
+        "slug": "child-category",
+        "status": "published",
+        "data": {
+          "title": "子カテゴリーの検証記事",
+          "content": []
+        },
+        "taxonomies": {
+          "category": ["cloud"]
+        }
+      },
+      {
+        "id": "japanese",
+        "slug": "日本語",
+        "status": "published",
+        "data": {
+          "title": "日本語検証記事",
+          "excerpt": "本文・URL・分類の合成検証",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "normal",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "日本語の本文です。実際の WordPress 記事ではありません。",
+                  "marks": []
+                }
+              ]
+            },
+            {
+              "_type": "block",
+              "_key": "h2",
+              "style": "h2",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "検証する内容",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "taxonomies": {
+          "category": ["tech"],
+          "tag": ["example"]
+        }
+      },
+      {
+        "id": "draft",
+        "slug": "draft-only",
+        "status": "draft",
+        "data": {
+          "title": "DRAFT_ONLY_SECRET",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "normal",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "DRAFT_ONLY_SECRET",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "pages": [
+      {
+        "id": "about",
+        "slug": "about",
+        "status": "published",
+        "data": {
+          "title": "この検証について",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "normal",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "span",
+                  "text": "合成データのみを使って検証しています。",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

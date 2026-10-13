@@ -1,0 +1,9 @@
+node_modules
+dist
+.astro
+.wrangler
+.private
+backups
+package-lock.json
+emdash-env.d.ts
+.emdash
