@@ -1,0 +1,124 @@
+---
+import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+interface Props {
+  title: string;
+  description?: string | null;
+  canonical?: string | null;
+  image?: string | null;
+  content?: { collection: string; id: string; slug?: string | null };
+}
+const { title, description, canonical, image, content } = Astro.props;
+const page = createPublicPageContext({
+  Astro,
+  kind: content ? "content" : "custom",
+  pageType: content ? "article" : "website",
+  title,
+  description,
+  canonical,
+  image,
+  content,
+  siteName: "移行検証ブログ",
+});
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title}</title>
+    <EmDashHead page={page} />
+  </head>
+  <body>
+    <EmDashBodyStart page={page} />
+    <a class="skip" href="#main">本文へ移動</a>
+    <header>
+      <nav aria-label="メイン">
+        <a href="/">移行検証ブログ</a><a href="/pages/about/"
+          >この検証について</a
+        ><a href="/rss.xml">RSS</a>
+      </nav>
+    </header>
+    <main id="main"><slot /></main>
+    <footer>ローカル検証用・合成データ。本番ブログではありません。</footer>
+    <EmDashBodyEnd page={page} />
+  </body>
+</html>
+<style is:global>
+  :root {
+    font-family:
+      system-ui, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    line-height: 1.9;
+    font-size: 17px;
+  }
+  body {
+    margin: 0;
+  }
+  header,
+  main,
+  footer {
+    max-width: 760px;
+    margin: auto;
+    padding: 1.5rem;
+  }
+  nav {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  a {
+    color: #075db3;
+    text-underline-offset: 0.2em;
+  }
+  a:focus-visible {
+    outline: 3px solid #075db3;
+    outline-offset: 4px;
+  }
+  h1,
+  h2,
+  h3 {
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+  }
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+  pre {
+    overflow: auto;
+    padding: 1rem;
+    background: #eee;
+  }
+  table {
+    display: block;
+    overflow: auto;
+  }
+  footer {
+    border-top: 1px solid #ddd;
+    font-size: 0.85rem;
+  }
+  .skip {
+    position: absolute;
+    left: -10000px;
+  }
+  .skip:focus {
+    left: 1rem;
+    background: white;
+    padding: 0.5rem;
+  }
+  .posts {
+    list-style: none;
+    padding: 0;
+  }
+  .posts li {
+    padding: 1rem 0;
+    border-bottom: 1px solid #ddd;
+  }
+</style>

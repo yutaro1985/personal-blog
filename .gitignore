@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.env*
+!.env.example
+.dev.vars*
+.private/
+backups/
+uploads/
+*.sqlite*
+*.db*
+*.sql
+*.wxr
+*.xml
+!tests/fixtures/*.xml
+*.log
+.DS_Store
+# Only generated, non-sensitive migration metadata belongs in Git.
+.emdash/*
+!.emdash/migrations.json
